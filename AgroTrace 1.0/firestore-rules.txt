@@ -1,0 +1,40 @@
+// Regras do Firestore para o AgroTrace
+// Cole este código no Firebase Console > Firestore Database > Rules
+
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Usuários: apenas o próprio usuário pode ler/escrever
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+    
+    // Produtos: leitura pública, escrita apenas pelo produtor
+    match /products/{productId} {
+      allow read: if true;
+      allow write: if request.auth != null && 
+        (resource == null || resource.data.producerId == request.auth.uid);
+    }
+    
+    // Avaliações: leitura pública, escrita por usuários autenticados
+    match /ratings/{ratingId} {
+      allow read: if true;
+      allow write: if request.auth != null && 
+        (resource == null || request.auth.uid == resource.data.user_id);
+    }
+  }
+}
+
+// REGRAS DO STORAGE (Firebase Storage)
+// Configure estas regras no Firebase Console > Storage > Rules
+// 
+// rules_version = '2';
+// service firebase.storage {
+//   match /b/{bucket}/o {
+//     // Imagens de produtos e perfis: leitura pública, escrita por usuários autenticados
+//     match /images/{allPaths=**} {
+//       allow read: if true;
+//       allow write: if request.auth != null;
+//     }
+//   }
+// }
